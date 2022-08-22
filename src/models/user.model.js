@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const conn = require('../lib/mongodb.connection')
 const fs = require('fs')
 const bcrypt = require('bcrypt')
+const path = require('path')
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -30,10 +31,12 @@ const userSchema = new mongoose.Schema({
 
 const userModel = conn.model('User', userSchema)
 
+const mongoInitialDataPath = path.resolve(__dirname, '../admin-account.json')
+
 async function addInitialAdminData() {
     const existIntialData = await userModel.count()
     if (!existIntialData) {
-        fs.readFile('./admin-account.json', 'utf-8', async (err, data) => {
+        fs.readFile(mongoInitialDataPath, 'utf-8', async (err, data) => {
             if (err) throw err
 
             const json = JSON.parse(data)

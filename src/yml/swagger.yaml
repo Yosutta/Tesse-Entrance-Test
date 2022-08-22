@@ -1,0 +1,286 @@
+openapi: 3.0.0
+
+info:
+    title: 'User Management API'
+    description: 'This is a Swagger document for the Tesse Backend Entrance Test'
+    version: 1.0.0
+    contact:
+        name: 'Phu Phuong Tin'
+        email: 'phuphuongtin@gmail.com'
+
+servers:
+    - url: http://127.0.0.1:3000
+
+security:
+    - bearerAuth: []
+
+tags:
+    - name: Users
+      description: 'User endpoint'
+    - name: Admins
+      description: 'Admin endpoint'
+
+paths:
+    /user:
+        get:
+            summary: 'Return user profile'
+            tags:
+                - Users
+            responses:
+                200:
+                    description: 'Return currently logged in user profile'
+                403:
+                    description: 'No account is logged in'
+                500:
+                    description: 'Internal server error'
+        put:
+            summary: 'Self-edit user profile'
+            tags:
+                - Users
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/editUserProfileLimited'
+            responses:
+                200:
+                    description: 'User edited successfully'
+                401:
+                    description: 'Current password does not match'
+                403:
+                    description: 'No account is logged in'
+                404:
+                    description: 'Logged in user not found'
+                500:
+                    description: 'Internal server error'
+    /user/signup:
+        post:
+            summary: 'Create a new user account'
+            tags:
+                - Users
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/createNewUser'
+            responses:
+                200:
+                    description: 'Successfully created a new user'
+                409:
+                    description: 'Duplicate username'
+                500:
+                    description: 'Internal server error'
+    /user/signin:
+        post:
+            summary: 'Sign in to an existing user account'
+            tags:
+                - Users
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/signInUser'
+            responses:
+                200:
+                    description: 'Successfully sign in user'
+                401:
+                    description: 'Incorrect username or password'
+                404:
+                    description: 'User not found'
+                500:
+                    description: 'Internal server error'
+    /admin/user:
+        get:
+            summary: 'Admin getting all users profile'
+            tags:
+                - Admins
+            responses:
+                200:
+                    description: 'Return a list of all users profile'
+                403:
+                    description: 'No admin account logged in'
+                404:
+                    description: 'Empty user profile list'
+                500:
+                    description: 'Internal server error'
+        post:
+            summary: 'Create a new user account with admin privileges'
+            tags:
+                - Admins
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/createNewUserAdmin'
+            responses:
+                200:
+                    description: 'Created a new user or Username existed, can not create user with duplicated username'
+                403:
+                    description: 'No admin account logged in'
+                500:
+                    description: 'Internal server error'
+    /admin/user/{userId}:
+        get:
+            summary: 'Return user profile with userId'
+            tags:
+                - Admins
+            parameters:
+                - in: path
+                  name: userId
+                  schema:
+                      type: string
+                  required: true
+                  description: User id that needs to be provided to get user profile
+            responses:
+                200:
+                    description: 'Return user profile with userId'
+                403:
+                    description: 'No admin account logged in'
+                404:
+                    description: 'User account with provided userId not found'
+                500:
+                    description: 'Internal server error'
+        put:
+            summary: 'Edit user profile with admin privileges'
+            tags:
+                - Admins
+            parameters:
+                - in: path
+                  name: userId
+                  schema:
+                      type: string
+                  required: true
+                  description: 'User id that needs to be provided to edit user profile'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/editUserProfileAdmin'
+            responses:
+                200:
+                    description: 'Successfully edited user profile with admin privileges'
+                403:
+                    description: 'No admin account logged in'
+                404:
+                    description: 'User with userId not found'
+                500:
+                    description: 'Internal server error'
+        delete:
+            summary: 'Delete user profile with admin privileges'
+            tags:
+                - Admins
+            parameters:
+                - in: path
+                  name: userId
+                  schema:
+                      type: string
+                  required: true
+                  description: 'User id that needs to be provided to delete user profile'
+            responses:
+                200:
+                    description: 'Successfully deleted user profile with userId'
+                403:
+                    description: 'No admin account logged in'
+                404:
+                    description: 'User with userId not found'
+                500:
+                    description: 'Internal server error'
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+    schemas:
+        'createNewUser':
+            type: object
+            required:
+                - username
+                - password
+            properties:
+                username:
+                    type: string
+                    default: 'user_01'
+                password:
+                    type: string
+                    default: 'user01'
+                fullName:
+                    type: string
+                    default: 'User 01'
+                avatar:
+                    type: string
+                    default: 'Avatar of user 01'
+        'signInUser':
+            type: object
+            required:
+                - username
+                - password
+            properties:
+                username:
+                    type: string
+                    default: 'user_01'
+                password:
+                    type: string
+                    default: 'user01'
+        'editUserProfileLimited':
+            type: object
+            required:
+                - oldpassword
+            properties:
+                oldpassword:
+                    type: string
+                    default: 'user01'
+                username:
+                    type: string
+                    default: 'user_01'
+                newpassword:
+                    type: string
+                    default: 'newuser01password'
+                fullName:
+                    type: string
+                    default: '01 User'
+                avatar:
+                    type: string
+                    default: 'An another avatar of user 01'
+        'createNewUserAdmin':
+            type: object
+            required:
+                - username
+                - password
+                - role
+            properties:
+                username:
+                    type: string
+                    default: 'user_03'
+                password:
+                    type: string
+                    default: '333'
+                fullName:
+                    type: string
+                    default: 'User 03'
+                avatar:
+                    type: string
+                    default: ''
+                role:
+                    type: string
+                    enum: ['user', 'admin']
+                    default: 'user'
+        'editUserProfileAdmin':
+            type: object
+            properties:
+                username:
+                    type: string
+                    default: 'admin_03'
+                password:
+                    type: string
+                    default: '333333'
+                fullName:
+                    type: string
+                    default: 'Admin 03'
+                avatar:
+                    type: string
+                    default: ''
+                role:
+                    type: string
+                    enum: ['user', 'admin']
+                    default: 'admin'
